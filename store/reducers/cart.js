@@ -1,6 +1,8 @@
 import { ADD_TO_CART, REMOVE_FROM_CART } from "../actions/cart";
 import CartItem from '../../models/cart-item';
 import { ADD_ORDER } from "../actions/orders";
+import { DELETE_PRODUCT } from "../actions/products";
+import { ActionSheetIOS } from "react-native";
 
 const initialState = {
     items: {},
@@ -57,11 +59,26 @@ const addOrder = () => {
     return initialState;
 }
 
+const deleteProduct = (state, action) => {
+    if (!state.items[action.pid]) {
+        return state;
+    }
+
+    const updatedItems = { ...state.items};
+    const itemTotal = state.items[action.pid].sum;
+    delete updatedItems[action.pid];
+    return {
+        items: updatedItems,
+        totalAmount: Math.abs(state.totalAmount - itemTotal)
+    }
+}
+
 export default (state = initialState, action) => {
     switch (action.type) {
         case ADD_TO_CART: return addToCart(state, action);
         case REMOVE_FROM_CART: return removeFromCart(state, action);
         case ADD_ORDER: return addOrder();
+        case DELETE_PRODUCT: return deleteProduct(state, action);
         default: return state;
     }
 }
