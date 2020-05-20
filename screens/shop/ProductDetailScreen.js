@@ -35,7 +35,8 @@ ProductDetailScreen.navigationOptions = navData => {
 const styles = StyleSheet.create({
     image: {
         width: '100%',
-        height: 300
+        height: 300,
+        resizeMode: "center"
     },
     actions: {
         marginVertical: 10,

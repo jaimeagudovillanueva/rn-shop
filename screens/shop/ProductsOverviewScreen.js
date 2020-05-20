@@ -1,16 +1,49 @@
-import React from 'react';
-import { Button, FlatList, Platform } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, Button, FlatList, Platform, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { HeaderButtons, Item } from 'react-navigation-header-buttons';
 
 import ProductItem from '../../components/shop/ProductItem';
 import * as cartAction from '../../store/actions/cart';
+import * as productsAction from '../../store/actions/products';
 import HeaderButton from '../../components/ui/HeaderButton';
 import Colors from '../../constants/Colors';
 
 const ProductsOverviewScreen = props => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [error, setError] = useState();
     const products = useSelector(state => state.products.availableProducts);
     const dispatch = useDispatch();
+
+    const loadProducts = useCallback(async () => {
+        setError(null);
+        setIsRefreshing(true);
+        try {
+            await dispatch(productsAction.fetchProducts());
+        } catch (err) {
+            setError(err.message);
+        }
+        setIsRefreshing(false);
+    }, [dispatch, setIsRefreshing, setError]);
+
+    // Nos subscribimos a willFocus para que se recarguen los productos cada vez
+    // que se vuelve a cargar la página. Ya que el useEffect inicial solo se ejecuta cuando
+    // se renderiza el componente y al usar sideDrawer solo se renderiza la primera vez, ya que
+    // al abandonar el componente no se elimina si no que se oculta
+    useEffect(() => {
+        const willFocusSub = props.navigation.addListener('willFocus', () => {
+            loadProducts();
+        })
+        return () => {
+            willFocusSub.remove();
+        }
+    }, [loadProducts]);
+
+    useEffect(() => {
+        setIsLoading(true)
+        loadProducts().then(() => setIsLoading(false));
+    }, [loadProducts, setIsLoading]);
 
     const selectItemHandler = (id, title) => {
         props.navigation.navigate('ProductDetail', { 
@@ -19,8 +52,29 @@ const ProductsOverviewScreen = props => {
         })
     }
 
+    if (error) {
+        return <View style={styles.centered}>
+            <Text>An error ocurred!</Text>
+            <Button title="Try again" onPress={loadProducts} color={Colors.primary}/>
+        </View>
+    }
+
+    if (isLoading) {
+        return <View style={styles.centered}>
+            <ActivityIndicator size='large' color={Colors.primary}/>
+        </View>
+    }
+
+    if (isLoading && products.lenth === 0) {
+        return <View style={styles.centered}>
+            <Text>No products found. Maybe start adding some!</Text>
+        </View>
+    }
+
     return <FlatList 
         data={products} 
+        onRefresh={loadProducts}
+        refreshing={isRefreshing}
         renderItem={itemData => 
             <ProductItem 
                 image={itemData.item.imageUrl}
@@ -39,6 +93,14 @@ const ProductsOverviewScreen = props => {
             </ProductItem>
         }/>
 }
+
+const styles = StyleSheet.create({
+    centered: {
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center'
+    }
+})
 
 ProductsOverviewScreen.navigationOptions = navData => {
     return {

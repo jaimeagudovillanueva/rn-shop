@@ -39,7 +39,8 @@ const styles = StyleSheet.create({
     },
     image: {
         width: '100%',
-        height: '60%'
+        height: '60%',
+        resizeMode: "center"
     },
     title: {
         fontFamily: 'open-sans-bold',
