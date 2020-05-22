@@ -1,24 +1,23 @@
 import PRODUCTS from '../../data/dummy-data';
 import { CREATE_PRODUCT, UPDATE_PRODUCT, DELETE_PRODUCT, SET_PRODUCTS } from '../actions/products';
 import Product from '../../models/product';
-import { ActionSheetIOS } from 'react-native';
 
 const initialState = {
-    availableProducts: PRODUCTS,
-    userProducts: PRODUCTS.filter(prod => prod.ownerId === 'u1')
+    availableProducts: [],
+    userProducts: []
 }
 
 const setProducts = (action) => {
     return {
         availableProducts: action.products,
-        userProducts: action.products.filter(prod => prod.ownerId === 'u1')
+        userProducts: action.userProducts
     }
 }
 
 const createProduct = (state, action) => {
     const newProduct = new Product(
         action.productData.id, 
-        'u1',
+        action.productData.ownerId,
         action.productData.title,
         action.productData.imageUrl,
         action.productData.description,

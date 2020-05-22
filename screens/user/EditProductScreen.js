@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useCallback, useReducer } from 'react';
-import { View, ScrollView, Platform, StyleSheet, Alert, KeyboardAvoidingView, 
-    ActivityIndicator } from 'react-native';
+import { View, ScrollView, Platform, StyleSheet, Alert, KeyboardAvoidingView } from 'react-native';
 import { HeaderButtons, Item } from 'react-navigation-header-buttons';
 import { useSelector, useDispatch } from 'react-redux';
 
 import HeaderButton from '../../components/ui/HeaderButton';
 import * as productsAction from '../../store/actions/products';
 import Input from '../../components/ui/Input';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 const FORM_INPUT_UPDATE = 'FORM_INPUT_UPDATE';
 

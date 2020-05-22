@@ -6,7 +6,8 @@ export const DELETE_PRODUCT = 'DELETE_PRODUCT';
 export const SET_PRODUCTS = 'SET_PRODUCTS';
 
 export const fetchProducts = () => {
-    return async dispatch => {
+    return async (dispatch, getState) => {
+        const userId = getState().auth.userId;
         try {
             // Gracias a redux-thunk podemos ejecutar aquí código asíncrono en vez de devolver
             // directamente el objeto con el tipo y los datos
@@ -22,7 +23,7 @@ export const fetchProducts = () => {
             for (const key in resData) {
                 loadedProducts.push(new Product(
                     key, 
-                    'u1', 
+                    resData[key].ownerId, 
                     resData[key].title, 
                     resData[key].imageUrl, 
                     resData[key].description, 
@@ -30,7 +31,11 @@ export const fetchProducts = () => {
                 );
             }
 
-            dispatch({type: SET_PRODUCTS, products: loadedProducts });
+            dispatch({
+                type: SET_PRODUCTS, 
+                products: loadedProducts, 
+                userProducts: loadedProducts.filter(prod => prod.ownerId === userId)
+            });
         } catch (err) {
             // log error 
             throw err;
@@ -39,28 +44,41 @@ export const fetchProducts = () => {
 }
 
 export const createProduct = (title, description, imageUrl, price) => {
-    return async dispatch => {
-        // Gracias a redux-thunk podemos ejecutar aquí código asíncrono en vez de devolver
-        // directamente el objeto con el tipo y los datos
-        const response = await fetch('https://rn-shop-61737.firebaseio.com/products.json', {
+     // Gracias a redux-thunk podemos ejecutar aquí código asíncrono en vez de devolver
+     // directamente el objeto con el tipo y los datos. Además nos da acceso al estado
+     // del global store gracias a la función getState
+    return async (dispatch, getState) => {
+        const token = getState().auth.token;
+        const userId = getState().auth.userId;
+        const response = await fetch(`https://rn-shop-61737.firebaseio.com/products.json?auth=${token}`, 
+        {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ title, description, imageUrl, price })
+            body: JSON.stringify({ title, description, imageUrl, price, ownerId: userId })
         });
 
         const responseData = await response.json();
         dispatch({ 
             type: CREATE_PRODUCT, 
-            productData: { id: responseData.name, title, description, imageUrl, price } 
+            productData: { 
+                id: responseData.name, 
+                title, 
+                description, 
+                imageUrl, 
+                price,
+                ownerId: userId
+            } 
         })
     }
 }
 
 export const updateProduct = (id, title, description, imageUrl) => {
-    return async dispatch => {
-        const response = await fetch(`https://rn-shop-61737.firebaseio.com/products/${id}.jsn`, {
+    return async (dispatch, getState) => {
+        const token = getState().auth.token;
+        const response = await fetch(`https://rn-shop-61737.firebaseio.com/products/${id}.json?auth=${token}`, 
+        {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -81,8 +99,10 @@ export const updateProduct = (id, title, description, imageUrl) => {
 }
 
 export const deleteProduct = productId => {
-    return async dispatch => {
-        const response = await fetch(`https://rn-shop-61737.firebaseio.com/products/${productId}.json`, {
+    return async (dispatch, getState) => {
+        const token = getState().auth.token;
+        const response = await fetch(`https://rn-shop-61737.firebaseio.com/products/${productId}.json?auth=${token}`, 
+        {
             method: 'DELETE'
         });
 
