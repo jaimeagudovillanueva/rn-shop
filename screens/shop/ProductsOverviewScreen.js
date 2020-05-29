@@ -27,16 +27,16 @@ const ProductsOverviewScreen = props => {
         setIsRefreshing(false);
     }, [dispatch, setIsRefreshing, setError]);
 
-    // Nos subscribimos a willFocus para que se recarguen los productos cada vez
+    // Nos subscribimos a focus para que se recarguen los productos cada vez
     // que se vuelve a cargar la página. Ya que el useEffect inicial solo se ejecuta cuando
     // se renderiza el componente y al usar sideDrawer solo se renderiza la primera vez, ya que
     // al abandonar el componente no se elimina si no que se oculta
     useEffect(() => {
-        const willFocusSub = props.navigation.addListener('willFocus', () => {
+        const unsubscribe = props.navigation.addListener('focus', () => {
             loadProducts();
         })
         return () => {
-            willFocusSub.remove();
+            unsubscribe();
         }
     }, [loadProducts]);
 
@@ -101,8 +101,8 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     }
 })
-
-ProductsOverviewScreen.navigationOptions = navData => {
+ 
+export const screenOptions = navData => {
     return {
         headerTitle: 'All Products',
         headerLeft: () => 
